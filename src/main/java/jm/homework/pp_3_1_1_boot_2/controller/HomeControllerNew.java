@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
 
@@ -41,7 +42,6 @@ public class HomeControllerNew {
         return "redirect:/logincustom";
     }
 
-
     @GetMapping(value = "/logincustom")
     public String getLoginPage(@RequestParam(value = "error", required = false) String error,
                                @RequestParam(value = "logout", required = false) String logout,
@@ -53,53 +53,23 @@ public class HomeControllerNew {
 
     @PostMapping("/registration-b")
     public String registrationB(@ModelAttribute("user") @Valid User user,
-                          BindingResult bindingResult,
-                          Model model) {
+                                BindingResult bindingResult,
+                                Model model,
+                                RedirectAttributes redirectAttributes) {
         String errorExist;
         if (bindingResult.hasErrors()) {
-            return "admin_b";
+            redirectAttributes.addFlashAttribute("user", user);
+            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.user", bindingResult);
+            return "redirect:/admin-b";
         }
         if (userService.isExistingUserByEmail(user.getEmail())) {
             errorExist = "this email is already exist";
-            model.addAttribute("errorExist", errorExist);
-            return "admin_b";
+            redirectAttributes.addFlashAttribute("errorExist", errorExist);
+            redirectAttributes.addFlashAttribute("user", user);
+            return "redirect:/admin-b";
         }
         userService.addUser(user);
-
-        return String.format("redirect:/admin-b", user.getId());
+        return "redirect:/admin-b";
     }
-
-
-//    @GetMapping("/registration-b")
-//    public String getRegisttrationFormB(@ModelAttribute("user") User user) {
-//        return "admin_b";
-//    }
-
-
-//    @GetMapping("/registration")
-//    public String getRegisterForm(@ModelAttribute("user") User user) {
-//        return "/templates/archive/regForm.html";
-//    }
-
-//    @PostMapping("/registration")
-//    public String regUser(@ModelAttribute("user") @Valid User user,
-//                          BindingResult bindingResult,
-//                          Model model) {
-//        String errorExist;
-//        if (bindingResult.hasErrors()) {
-//            return "/templates/archive/regForm.html";
-//        }
-//        if (userService.isExistingUserByEmail(user.getEmail())) {
-//            errorExist = "this email is already exist";
-//            model.addAttribute("errorExist", errorExist);
-//            return "/templates/archive/regForm.html";
-//        }
-//        userService.addUser(user);
-//        securityService.autoLogin(user);
-//
-//        return String.format("redirect:/user/acc/%d", user.getId());
-//    }
-
-
 
 }

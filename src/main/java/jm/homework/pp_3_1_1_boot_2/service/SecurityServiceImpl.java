@@ -19,34 +19,25 @@ public class SecurityServiceImpl implements SecurityService {
     private AuthenticationManager authenticationManager;
     private AuthenticationManagerBuilder authenticationManagerBuilder;
     private UserDetailsService userDetailsService;
+    private UserService userService;
 
     @Autowired
-    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
+    public SecurityServiceImpl(AuthenticationManager authenticationManager,
+                               AuthenticationManagerBuilder authenticationManagerBuilder,
+                               @Qualifier("userDetailsServiceImpl")
+                               UserDetailsService userDetailsService,
+                               UserService userService) {
         this.authenticationManager = authenticationManager;
-    }
-    @Autowired
-    public void setAuthenticationManagerBuilder(AuthenticationManagerBuilder authenticationManagerBuilder) {
         this.authenticationManagerBuilder = authenticationManagerBuilder;
-    }
-    @Autowired
-    public void setUserDetailsService(@Qualifier("userDetailsServiceImpl")
-                                      UserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
+        this.userService = userService;
     }
 
+    public SecurityServiceImpl() {
+    }
 
     @Override
     public void autoLogin(User user) {
-//        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-//        UsernamePasswordAuthenticationToken authenticationToken =
-//                new UsernamePasswordAuthenticationToken(userDetails, password, userDetails.getAuthorities());
-//
-//        authenticationManager.authenticate(authenticationToken);
-//
-//        if (authenticationToken.isAuthenticated()) {
-//            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-//        }
-
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -58,5 +49,23 @@ public class SecurityServiceImpl implements SecurityService {
         User user = (User)authentication.getPrincipal();
         boolean role_admin = authentication.getAuthorities().stream().anyMatch(x -> x.getAuthority().equals("ROLE_ADMIN"));
         return role_admin || user.getId() == id;
+    }
+
+    @Override
+    public User getAuthUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String email;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails) {
+            email = ((UserDetails)principal).getUsername();
+        } else {
+            email = principal.toString();
+        }
+
+        if (userService.isExistingUserByEmail(email)) {
+            return (User) userDetailsService.loadUserByUsername(email);
+        }
+        return new User();
     }
 }

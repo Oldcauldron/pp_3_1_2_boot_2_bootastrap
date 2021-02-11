@@ -7,4 +7,5 @@ import org.springframework.security.core.Authentication;
 public interface SecurityService {
     void autoLogin(User user);
     boolean preauthorizeFunc(int id, Authentication authentication);
+    public User getAuthUser();
 }

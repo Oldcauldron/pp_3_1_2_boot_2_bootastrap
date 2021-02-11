@@ -60,8 +60,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .failureHandler(authenticationFailureHandler())
                 .permitAll();
 
-
-
         http.logout()
                 // разрешаем делать логаут всем
                 .permitAll()
